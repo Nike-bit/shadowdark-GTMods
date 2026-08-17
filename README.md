@@ -4,7 +4,7 @@ A personal Foundry VTT module containing modular gameplay additions for the Shad
 
 ## Version
 
-0.5.1
+0.5.2
 
 ## Foundry Package ID
 
@@ -32,12 +32,11 @@ The local Foundry module directory should also be named:
 - `scripts/features/quickslots.js` — Quickslot mechanics
 - `styles/gtmods.css` — shared styling
 
-## v0.5.1 Hotfix
+## v0.5.2 Hotfix
 
-- Restored Quickslot decoration on Shadowdark Player sheets in Foundry v14.
-- Uses the current ApplicationV1 render path while retaining compatibility fallbacks.
-- Keeps Quickslots restricted to eligible carried physical gear.
-- Preserves Quickslot assignments created under earlier GTMods development IDs.
+- Fixes Quickslots failing to render when legacy GTMods module namespaces are no longer active.
+- Reads legacy Quickslot values directly from stored item flags instead of calling `getFlag()` with an inactive module scope.
+- Continues writing all new Quickslot state only to `shadowdark-gtmods`.
 
 ## Legacy ID Compatibility
 
@@ -46,7 +45,7 @@ Previous development builds used:
 - `shadowdark-armor-padding`
 - `shadowdark-gt-adds`
 
-Version 0.5.1 uses the canonical package ID:
+Version 0.5.2 uses the canonical package ID:
 
 - `shadowdark-gtmods`
 

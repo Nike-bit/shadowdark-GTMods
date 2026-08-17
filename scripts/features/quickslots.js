@@ -34,9 +34,10 @@ function isQuickslotted(item) {
     return currentValue === true;
   }
 
-  // Preserve Quickslots created under either former package ID.
+  // Foundry v14 validates getFlag() scopes and throws for inactive old modules.
+  // Read historical namespaces directly from the stored flags object instead.
   return LEGACY_MODULE_IDS.some(
-    legacyId => item.getFlag(legacyId, QUICK_SLOT_FLAG_KEY) === true
+    legacyId => item.flags?.[legacyId]?.[QUICK_SLOT_FLAG_KEY] === true
   );
 }
 
