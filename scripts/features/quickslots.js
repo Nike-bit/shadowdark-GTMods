@@ -145,31 +145,41 @@ function sortRenderedCarriedGear(inventoryRoot, actor) {
   }
 }
 
+function renderQuickslots(app, html) {
+  if (game.system.id !== SHADOWDARK_SYSTEM_ID) return;
+
+  const actor = app?.actor ?? app?.object;
+  const root = unwrapHtml(html);
+
+  // Quickslots belong only on Shadowdark Player actor sheets.
+  if (!actor || actor.documentName !== "Actor" || actor.type !== "Player" || !root) return;
+
+  const inventoryRoot = getInventoryRoot(root);
+  if (!inventoryRoot) return;
+
+  for (const item of actor.items) {
+    if (!isEligibleQuickslotItem(item)) continue;
+
+    const row = findItemRow(inventoryRoot, item);
+    if (!row || row.querySelector(".quickslot-button")) continue;
+
+    const controls = findControls(row);
+    if (!controls) continue;
+
+    createQuickslotButton(app, actor, item, controls);
+  }
+
+  sortRenderedCarriedGear(inventoryRoot, actor);
+}
+
 export function registerQuickslots() {
-  Hooks.on("renderActorSheet", (app, html) => {
-    if (game.system.id !== SHADOWDARK_SYSTEM_ID) return;
+  // Shadowdark 4.x on Foundry v14 currently uses ApplicationV1 actor sheets.
+  // renderApplicationV1 is therefore the primary v14 integration point.
+  Hooks.on("renderApplicationV1", renderQuickslots);
 
-    const actor = app.actor;
-    const root = unwrapHtml(html);
-    if (!actor || !root) return;
+  // Keep the legacy ActorSheet hook for Foundry v13 compatibility.
+  Hooks.on("renderActorSheet", renderQuickslots);
 
-    setTimeout(() => {
-      const inventoryRoot = getInventoryRoot(root);
-      if (!inventoryRoot) return;
-
-      for (const item of actor.items) {
-        if (!isEligibleQuickslotItem(item)) continue;
-
-        const row = findItemRow(inventoryRoot, item);
-        if (!row || row.querySelector(".quickslot-button")) continue;
-
-        const controls = findControls(row);
-        if (!controls) continue;
-
-        createQuickslotButton(app, actor, item, controls);
-      }
-
-      sortRenderedCarriedGear(inventoryRoot, actor);
-    }, 150);
-  });
+  // Future-proof the feature for a later Shadowdark ApplicationV2 migration.
+  Hooks.on("renderApplicationV2", renderQuickslots);
 }
