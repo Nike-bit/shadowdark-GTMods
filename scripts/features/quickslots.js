@@ -13,6 +13,10 @@ import {
 
 const EXCLUDED_TYPES = ["Armor", "Wand", "Scroll"];
 const EXCLUDED_NAMES = ["Backpack"];
+const NAME_COLLATOR = new Intl.Collator(undefined, {
+  sensitivity: "base",
+  numeric: true
+});
 
 function getDexModifier(actor) {
   return actor.system?.abilities?.dex?.mod ?? 0;
@@ -29,48 +33,48 @@ function getItemSlots(item) {
 function isQuickslotted(item) {
   const currentValue = item.getFlag(MODULE_ID, QUICK_SLOT_FLAG_KEY);
 
-  // The current namespace takes precedence, including an explicit false.
   if (currentValue !== undefined) {
     return currentValue === true;
   }
 
-  // Foundry v14 validates getFlag() scopes and throws for inactive old modules.
-  // Read historical namespaces directly from the stored flags object instead.
   return LEGACY_MODULE_IDS.some(
     legacyId => item.flags?.[legacyId]?.[QUICK_SLOT_FLAG_KEY] === true
   );
 }
 
 async function setQuickslotted(item, value) {
-  // All new changes are written only to the current package namespace.
   return item.setFlag(MODULE_ID, QUICK_SLOT_FLAG_KEY, value);
+}
+
+function isPhysicalInventoryItem(item) {
+  return Boolean(item.system?.slots);
 }
 
 function isEligibleQuickslotItem(item) {
   if (EXCLUDED_TYPES.includes(item.type)) return false;
   if (EXCLUDED_NAMES.includes(item.name)) return false;
-
-  if (item.system?.equipped) return false;
   if (item.system?.stashed) return false;
-
-  // Physical inventory items in Shadowdark expose the slots data model.
-  if (!item.system?.slots) return false;
-
+  if (!isPhysicalInventoryItem(item)) return false;
   return true;
+}
+
+function isActiveQuickItem(item) {
+  return !item.system?.stashed && isQuickslotted(item);
 }
 
 function getUsedQuickslotSlots(actor) {
   return actor.items.reduce((total, item) => {
-    if (!isQuickslotted(item)) return total;
+    if (!isActiveQuickItem(item)) return total;
     return total + getItemSlots(item);
   }, 0);
 }
 
-function createQuickslotButton(app, actor, item, controls) {
+function createQuickslotButton(app, actor, item, row, controls) {
   const active = isQuickslotted(item);
 
   const button = document.createElement("a");
   button.classList.add("item-control", "quickslot-button");
+  row.classList.add("gtmods-quickslot-row");
 
   if (active) button.classList.add("active");
 
@@ -113,31 +117,58 @@ function createQuickslotButton(app, actor, item, controls) {
   controls.prepend(button);
 }
 
-function sortRenderedCarriedGear(inventoryRoot, actor) {
+function createQuickSummary(actor, inventoryRoot) {
+  if (inventoryRoot.querySelector(".gtmods-quick-box")) return;
+
+  const gpInput = inventoryRoot.querySelector('[name="system.coins.gp"]');
+  const coinsBox = gpInput?.closest(".SD-box");
+  if (!coinsBox) return;
+
+  const used = getUsedQuickslotSlots(actor);
+  const limit = getQuickslotLimit(actor);
+
+  const quickBox = document.createElement("div");
+  quickBox.classList.add("SD-box", "gtmods-quick-box");
+  quickBox.title = "Quickslots used / total Quickslots";
+  quickBox.innerHTML = `
+    <div class="header">
+      <label>Quick</label>
+      <span></span>
+    </div>
+    <div class="content">
+      <div class="gtmods-quick-count">
+        <i class="fa-solid fa-bolt"></i>
+        <span>${used}/${limit}</span>
+      </div>
+    </div>
+  `;
+
+  coinsBox.before(quickBox);
+}
+
+function sortRenderedInventory(inventoryRoot, actor) {
   const itemLists = inventoryRoot.querySelectorAll("ol.SD-list.item-list");
 
   for (const list of itemLists) {
     const rows = [...list.querySelectorAll("li.item[data-item-id]")];
+    if (!rows.length) continue;
 
     const rowData = rows
       .map(row => {
         const item = actor.items.get(row.dataset.itemId);
-        if (!item) return null;
-
-        if (item.system?.equipped) return null;
-        if (item.system?.stashed) return null;
-        if (!item.system?.slots) return null;
-
+        if (!item || !isPhysicalInventoryItem(item)) return null;
         return { row, item };
       })
       .filter(Boolean);
 
+    if (!rowData.length) continue;
+
     rowData.sort((a, b) => {
-      const aQuick = isQuickslotted(a.item) ? 0 : 1;
-      const bQuick = isQuickslotted(b.item) ? 0 : 1;
+      const aQuick = isActiveQuickItem(a.item) ? 0 : 1;
+      const bQuick = isActiveQuickItem(b.item) ? 0 : 1;
 
       if (aQuick !== bQuick) return aQuick - bQuick;
-      return a.item.name.localeCompare(b.item.name);
+      return NAME_COLLATOR.compare(a.item.name, b.item.name);
     });
 
     for (const { row } of rowData) {
@@ -152,7 +183,6 @@ function renderQuickslots(app, html) {
   const actor = app?.actor ?? app?.object;
   const root = unwrapHtml(html);
 
-  // Quickslots belong only on Shadowdark Player actor sheets.
   if (!actor || actor.documentName !== "Actor" || actor.type !== "Player" || !root) return;
 
   const inventoryRoot = getInventoryRoot(root);
@@ -167,20 +197,15 @@ function renderQuickslots(app, html) {
     const controls = findControls(row);
     if (!controls) continue;
 
-    createQuickslotButton(app, actor, item, controls);
+    createQuickslotButton(app, actor, item, row, controls);
   }
 
-  sortRenderedCarriedGear(inventoryRoot, actor);
+  createQuickSummary(actor, inventoryRoot);
+  sortRenderedInventory(inventoryRoot, actor);
 }
 
 export function registerQuickslots() {
-  // Shadowdark 4.x on Foundry v14 currently uses ApplicationV1 actor sheets.
-  // renderApplicationV1 is therefore the primary v14 integration point.
   Hooks.on("renderApplicationV1", renderQuickslots);
-
-  // Keep the legacy ActorSheet hook for Foundry v13 compatibility.
   Hooks.on("renderActorSheet", renderQuickslots);
-
-  // Future-proof the feature for a later Shadowdark ApplicationV2 migration.
   Hooks.on("renderApplicationV2", renderQuickslots);
 }

@@ -1,0 +1,75 @@
+/* GTMods — Shadowdark Player Inventory */
+
+/* Keep GTMods inventory controls aligned without overriding the whole inventory grid. */
+.gtmods-quickslot-row .actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+}
+
+.quickslot-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  min-width: 14px;
+  height: 18px;
+  margin: 0;
+  flex: 0 0 auto;
+  cursor: pointer;
+  opacity: 0.35;
+}
+
+.quickslot-button.active,
+.quickslot-button.active i {
+  opacity: 1;
+  color: #000 !important;
+  text-shadow: 0 0 4px #f5d76e;
+}
+
+.quickslot-button i {
+  pointer-events: none;
+}
+
+.gtmods-quick-box .content {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.gtmods-quick-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.gtmods-quick-count i {
+  font-size: 0.9em;
+}
+
+/* Armor Padding inventory controls */
+.armor-padding-button,
+.armor-padding-repair-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-right: 2px;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.armor-padding-button i,
+.armor-padding-repair-button i {
+  pointer-events: none;
+}
+
+.armor-padding-broken-row {
+  opacity: 0.65;
+  filter: grayscale(0.7);
+}

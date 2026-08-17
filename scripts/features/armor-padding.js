@@ -2,44 +2,16 @@ import { SHADOWDARK_SYSTEM_ID } from "../core/constants.js";
 import { findControls, findItemRow, unwrapHtml } from "../core/dom.js";
 
 const PADDING = {
-  "Armor Padding (Light)": {
-    die: "1d4",
-    repairCost: 5,
-    originalSlots: 1
-  },
-  "Armor Padding (Medium)": {
-    die: "1d6",
-    repairCost: 30,
-    originalSlots: 1
-  },
-  "Armor Padding (Heavy)": {
-    die: "1d8",
-    repairCost: 75,
-    originalSlots: 2
-  }
+  "Armor Padding (Light)": { die: "1d4", repairCost: 5, originalSlots: 1 },
+  "Armor Padding (Medium)": { die: "1d6", repairCost: 30, originalSlots: 1 },
+  "Armor Padding (Heavy)": { die: "1d8", repairCost: 75, originalSlots: 2 }
 };
 
-function cleanPaddingName(item) {
-  return item.name.replace(" (Broken)", "");
-}
-
-function getPaddingData(item) {
-  return PADDING[cleanPaddingName(item)];
-}
-
-function isBroken(item) {
-  return item.system?.broken === true;
-}
-
-function getGold(actor) {
-  return actor.system?.coins?.gp ?? 0;
-}
-
-async function setGold(actor, value) {
-  return actor.update({
-    "system.coins.gp": value
-  });
-}
+function cleanPaddingName(item) { return item.name.replace(" (Broken)", ""); }
+function getPaddingData(item) { return PADDING[cleanPaddingName(item)]; }
+function isBroken(item) { return item.system?.broken === true; }
+function getGold(actor) { return actor.system?.coins?.gp ?? 0; }
+async function setGold(actor, value) { return actor.update({ "system.coins.gp": value }); }
 
 function createUsePaddingButton(actor, item, paddingData, controls) {
   const button = document.createElement("a");
@@ -144,25 +116,15 @@ export function registerArmorPadding() {
         const row = findItemRow(root, item);
         if (!row) continue;
 
-        if (isBroken(item)) {
-          row.classList.add("armor-padding-broken-row");
-        }
+        if (isBroken(item)) row.classList.add("armor-padding-broken-row");
 
         const controls = findControls(row);
         if (!controls) continue;
 
-        if (
-          row.querySelector(".armor-padding-button") ||
-          row.querySelector(".armor-padding-repair-button")
-        ) {
-          continue;
-        }
+        if (row.querySelector(".armor-padding-button") || row.querySelector(".armor-padding-repair-button")) continue;
 
-        if (isBroken(item)) {
-          createRepairButton(actor, item, paddingData, controls);
-        } else if (item.system?.equipped) {
-          createUsePaddingButton(actor, item, paddingData, controls);
-        }
+        if (isBroken(item)) createRepairButton(actor, item, paddingData, controls);
+        else if (item.system?.equipped) createUsePaddingButton(actor, item, paddingData, controls);
       }
     }, 100);
   });
