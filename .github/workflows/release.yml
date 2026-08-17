@@ -1,0 +1,79 @@
+name: Build and Release GTMods
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate module manifest
+        run: |
+          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('module.json','utf8')); if(!m.id || !m.version) throw new Error('module.json must contain id and version'); console.log('Building', m.id, m.version);"
+
+      - name: Check JavaScript syntax
+        run: |
+          find scripts -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Read release version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "JSON.parse(require('fs').readFileSync('module.json','utf8')).version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether release tag already exists
+        id: tagcheck
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release tag $TAG already exists; nothing to publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify manifest paths
+        if: steps.tagcheck.outputs.exists == 'false'
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const m = JSON.parse(fs.readFileSync('module.json','utf8'));
+          for (const p of [...(m.esmodules || []), ...(m.styles || [])]) {
+            if (!fs.existsSync(p)) throw new Error(`Manifest references missing file: ${p}`);
+          }
+          NODE
+
+      - name: Build Foundry package ZIP
+        if: steps.tagcheck.outputs.exists == 'false'
+        shell: bash
+        run: |
+          rm -f shadowdark-gtmods.zip
+          zip -r shadowdark-gtmods.zip module.json README.md scripts styles -x '*.DS_Store' '*.git*' '.github/*'
+
+      - name: Create GitHub release
+        if: steps.tagcheck.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "$TAG" module.json shadowdark-gtmods.zip             --target "$GITHUB_SHA"             --title "Shadowdark GTMods v$VERSION"             --generate-notes
