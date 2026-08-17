@@ -1,0 +1,46 @@
+.armor-padding-button,
+.armor-padding-repair-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-right: 2px;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.armor-padding-button i,
+.armor-padding-repair-button i {
+  pointer-events: none;
+}
+
+.armor-padding-broken-row {
+  opacity: 0.65;
+  filter: grayscale(0.7);
+}
+
+.quickslot-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 18px;
+  margin-right: 2px;
+  margin-left: 2px;
+  flex: 0 0 auto;
+  cursor: pointer;
+  opacity: 0.35;
+  transform: translateX(-3px);
+}
+
+.quickslot-button.active,
+.quickslot-button.active i {
+  opacity: 1;
+  color: #000 !important;
+  text-shadow: 0 0 4px #f5d76e;
+}
+
+.quickslot-button i {
+  pointer-events: none;
+}
