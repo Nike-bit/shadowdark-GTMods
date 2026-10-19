@@ -10,9 +10,10 @@ import {
   getInventoryRoot,
   unwrapHtml
 } from "../core/dom.js";
+import { areQuickslotsEnabled } from "../core/settings.js";
 
 const EXCLUDED_TYPES = ["Armor", "Wand", "Scroll"];
-const EXCLUDED_NAMES = ["Backpack"];
+const EXCLUDED_NAMES = ["Backpack", "Bare Fists"];
 const NAME_COLLATOR = new Intl.Collator(undefined, {
   sensitivity: "base",
   numeric: true
@@ -59,7 +60,7 @@ function isEligibleQuickslotItem(item) {
 }
 
 function isActiveQuickItem(item) {
-  return !item.system?.stashed && isQuickslotted(item);
+  return isEligibleQuickslotItem(item) && isQuickslotted(item);
 }
 
 function getUsedQuickslotSlots(actor) {
@@ -136,9 +137,10 @@ function createQuickSummary(actor, inventoryRoot) {
       <span></span>
     </div>
     <div class="content">
-      <div class="gtmods-quick-count">
-        <i class="fa-solid fa-bolt"></i>
-        <span>${used}/${limit}</span>
+      <div class="value-grid larger gtmods-quick-count">
+        <div>${used}</div>
+        <div>/</div>
+        <div>${limit}</div>
       </div>
     </div>
   `;
@@ -179,6 +181,7 @@ function sortRenderedInventory(inventoryRoot, actor) {
 
 function renderQuickslots(app, html) {
   if (game.system.id !== SHADOWDARK_SYSTEM_ID) return;
+  if (!areQuickslotsEnabled()) return;
 
   const actor = app?.actor ?? app?.object;
   const root = unwrapHtml(html);

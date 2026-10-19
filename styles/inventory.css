@@ -1,13 +1,50 @@
 /* GTMods — Shadowdark Player Inventory */
 
-/* Keep GTMods inventory controls aligned without overriding the whole inventory grid. */
-.gtmods-quickslot-row .actions {
+/*
+ * Keep the native Qty and Slots columns on one fixed x-coordinate in every
+ * Player inventory section. Shadowdark already gives Qty 80px and Slots 40px;
+ * reserving the same 84px action area for every header and row moves both
+ * columns left and prevents extra GTMods controls from shifting them.
+ */
+.shadowdark.sheet.player
+.tab-inventory
+.inventory-grid
+ol.SD-list.item-list
+> li
+> .quantity {
+  flex: 0 0 80px;
+  width: 80px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.shadowdark.sheet.player
+.tab-inventory
+.inventory-grid
+ol.SD-list.item-list
+> li
+> .slots {
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.shadowdark.sheet.player
+.tab-inventory
+.inventory-grid
+ol.SD-list.item-list
+> li
+> .actions {
+  flex: 0 0 84px;
+  width: 84px;
+  min-width: 84px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 3px;
 }
 
+/* Quickslot toggle shown on eligible inventory items. */
 .quickslot-button {
   display: inline-flex;
   align-items: center;
@@ -32,24 +69,10 @@
   pointer-events: none;
 }
 
-.gtmods-quick-box .content {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-.gtmods-quick-count {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 32px;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.gtmods-quick-count i {
-  font-size: 0.9em;
-}
+/*
+ * The Quick box intentionally uses Shadowdark's native
+ * "value-grid larger" markup, matching the Slots box above it.
+ */
 
 /* Armor Padding inventory controls */
 .armor-padding-button,

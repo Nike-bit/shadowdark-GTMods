@@ -21,7 +21,7 @@ export function registerGTModsSettings() {
     name: "Enable Quickslots",
     hint: "Enable Quickslot controls, sorting and the Quick counter.",
     scope: "world",
-    config: false,
+    config: true,
     type: Boolean,
     default: true,
     onChange: refreshPlayerSheets
