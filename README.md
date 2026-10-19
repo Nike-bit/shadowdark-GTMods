@@ -4,7 +4,7 @@ A personal Foundry VTT module containing modular gameplay additions for the Shad
 
 ## Version
 
-0.6.0
+0.6.3
 
 ## Foundry Package ID
 
@@ -33,3 +33,17 @@ Previous development builds used:
 
 Existing Quickslot assignments stored under either former namespace are still recognized.
 New Quickslot changes are stored under `shadowdark-gtmods`.
+
+
+## v0.6.3 Module Options
+
+In a running world, a GM can open **Configure Settings → Module Settings → Shadowdark GTMods → Configure GTMods**.
+
+The dedicated GTMods Options menu currently has one checkbox: **Enable Quickslots** (enabled by default).
+Disabling the feature hides its bolts and Quick counter and disables Quickslot-based sorting.
+Existing item flags are preserved, so switching the feature back on restores assignments.
+Open Player sheets are refreshed when the setting changes.
+
+Settings are registered on Foundry's `init` hook via `scripts/core/settings.js`.
+The menu is implemented as an ApplicationV2 form in `scripts/apps/options.js` with a template in `templates/options.hbs`.
+The form's CSS is kept separately in `styles/options.css`.

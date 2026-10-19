@@ -1,0 +1,23 @@
+<section class="gtmods-options-body">
+  <div class="form-group">
+    <label for="gtmods-enable-quickslots">Enable Quickslots</label>
+    <div class="form-fields">
+      <input
+        id="gtmods-enable-quickslots"
+        name="enableQuickslots"
+        type="checkbox"
+        {{#if enableQuickslots}}checked{{/if}}
+      >
+    </div>
+    <p class="hint">
+      Show Quickslot bolts, the Quick counter, and Quickslot-based inventory sorting.
+      Disabling the feature does not erase existing Quickslot assignments.
+    </p>
+  </div>
+  <footer class="form-footer">
+    <button type="submit">
+      <i class="fa-solid fa-floppy-disk"></i>
+      Save Changes
+    </button>
+  </footer>
+</section>

@@ -8,3 +8,7 @@ export const LEGACY_MODULE_IDS = [
 ];
 
 export const QUICK_SLOT_FLAG_KEY = "quickslot";
+
+export const SETTINGS = Object.freeze({
+  ENABLE_QUICKSLOTS: "enableQuickslots"
+});
